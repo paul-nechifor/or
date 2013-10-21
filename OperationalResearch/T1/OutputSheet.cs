@@ -26,13 +26,12 @@ namespace T1 {
         }
 
         public void AddValue(object value) {
-            if (value is double[]) {
-                AddHtmlLine(PrintVector((double[])value));
-            } else if (value is double[][]) {
-                AddHtmlLine(PrintMatrix((double[][])value));
-            } else {
-                AddHtmlLine(value.ToString());
-            }
+            AddHtmlLine(Print(value));
+        }
+
+        public void AddAsignment(string name, object value) {
+            string format = "<table><tr><td>{0} = </td><td>{1}</td></tr></table>";
+            AddHtmlLine(string.Format(format, name, Print(value)));
         }
 
         public void AddError(string error) {
@@ -96,6 +95,16 @@ namespace T1 {
             sb.Append("<td class='last'>= z</td>");
 
             sb.Append("</tr>");
+        }
+
+        private string Print(object value) {
+            if (value is double[]) {
+                return PrintVector((double[]) value);
+            } else if (value is double[][]) {
+                return PrintMatrix((double[][]) value);
+            } else {
+                return value.ToString();
+            }
         }
 
         private string PrintVector(double[] v) {

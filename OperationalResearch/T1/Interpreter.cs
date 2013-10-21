@@ -59,8 +59,9 @@ namespace T1 {
             object result = Evaluate(rvalue);
 
             names[lvalue] = result;
-            outputSheet.AddValue(lvalue + " =");
-            outputSheet.AddValue(result);
+            //outputSheet.AddValue(lvalue + " =");
+            //outputSheet.AddValue(result);
+            outputSheet.AddAsignment(lvalue, result);
         }
 
         // Very hackish code! Look away lest you be retinally damaged.

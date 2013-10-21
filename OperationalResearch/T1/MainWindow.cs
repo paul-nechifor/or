@@ -35,6 +35,8 @@ namespace T1 {
                     e.Handled = true;
                 }
             };
+
+            input.Focus();
         }
 
         private void OnEnter() {
