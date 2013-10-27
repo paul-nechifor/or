@@ -1,50 +1,64 @@
-﻿<!doctype html>
+﻿<!DOCTYPE html>
 <html>
-	<head>
-		<title></title>
-		<style>
-			html {
-				background-color: #FFF;
-				font-size: 14px;
-			}
+  <head>
+    <title></title>
+    <style>
+      html {
+        background-color: #FFF;
+        font-size: 14px;
+      }
 
-			.simplex-tableau {
-				border-collapse:collapse;
-				margin-bottom: 15px;
-				margin-top: 15px;
-			}
+      .simplex-tableau, .simplex-dual-tableau {
+        border-collapse:collapse;
+        margin-bottom: 15px;
+        margin-top: 15px;
+      }
 
-			.simplex-tableau td {
-				padding: 2px 4px;
-				text-align: right;
-			}
+      .simplex-tableau td, .simplex-dual-tableau td {
+        padding: 2px 4px;
+        text-align: right;
+      }
 
-			.simplex-tableau td.last {
-				text-align: left;
-			}
+      .simplex-tableau td.last {
+        text-align: left;
+      }
 
-			.simplex-tableau td.rhs {
-				border: 1px solid #000;
-				border-width: 0 1px;
-			}
+      .simplex-tableau td.rhs {
+        border: 1px solid #000;
+        border-width: 0 1px;
+      }
 
-			.simplex-tableau .header td {
-				border-bottom: 1px solid #000;
-			}
+      .simplex-tableau .header td {
+        border-bottom: 1px solid #000;
+      }
 
-			.simplex-tableau .footer td {
-				border-top: 1px solid #000;
-			}
-			table.matrix {
-				border: 1px solid #000;
-				border-width: 0 1px;
-			}
-			table.matrix td {
-				text-align: right;
-				padding: 2px 4px;
-			}
-		</style>
-	</head>
-	<body>
-	</body>
+      .simplex-tableau .footer td {
+        border-top: 1px solid #000;
+      }
+      
+      .simplex-dual-tableau td.vals {
+        border: 1px solid #000;
+        border-width: 1px 0;
+      }
+      
+      .simplex-dual-tableau td.first {
+        border-right: 1px solid #000;
+      }
+      
+      .simplex-dual-tableau td.last {
+        border-left: 1px solid #000;
+      }
+      
+      table.matrix {
+        border: 1px solid #000;
+        border-width: 0 1px;
+      }
+      table.matrix td {
+        text-align: right;
+        padding: 2px 4px;
+      }
+    </style>
+  </head>
+  <body>
+  </body>
 </html>

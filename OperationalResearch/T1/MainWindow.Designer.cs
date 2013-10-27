@@ -75,7 +75,7 @@
             this.ClientSize = new System.Drawing.Size(823, 660);
             this.Controls.Add(this.splitContainer1);
             this.Name = "MainWindow";
-            this.Text = "Operational Research - T1";
+            this.Text = "Operational Research";
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);

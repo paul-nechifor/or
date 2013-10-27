@@ -1,7 +1,7 @@
 Operational Research Homework
 =============================
 
-## Examples for T1C:
+## Examples for T1C
 
 * the homework example:
 
@@ -10,6 +10,15 @@ Operational Research Homework
     b = [0, 0, 1];
     c = [10, -57, -9, -24];
     x = simplex(A, b, c, 1)
+```
+
+* A3:
+
+```
+    A = [[0.2, 0.3], [0.4, 0.3]];
+    b = [14, 16];
+    c = [20, 25];
+    x = simplex(A, b, c, 1);
 ```
 
 * c1:
@@ -30,3 +39,66 @@ Operational Research Homework
     x = simplex(A, b, c, 1);
 ```
 
+## Examples for T1D
+
+* the homework example:
+
+```
+    A = [[2, 1, 1], [1, -1, 0], [1, 0, -1]];
+    b = [4, -1, -2];
+    c = [1, 1, -2];
+    x = simplex(A, b, c, 1);
+```
+
+* 1:
+
+```
+    A = [[1, -3, 1], [2, 2, -1], [2, 1, -2]];
+    b = [-1, 4, 2];
+    c = [2, -2, 1];
+    x = simplex(A, b, c, 1);
+```
+
+* 2:
+
+```
+    A = [[1, 2, -1, 0], [2, 0, 1, 1], [1, 0, 0, -1]];
+    b = [-2, 10, -1];
+    c = [1, 0, 3, -2];
+    x = simplex(A, b, c, 1);
+```
+
+## Examples for T1E
+
+* the homework example:
+
+```
+    A = [[1, -1], [-2, -1], [-1, 2]];
+    b = [-1, -4, 0];
+    c = [2, -3];
+    y = simplexDual(A, b, c, 1);
+```
+
+* A3:
+
+```
+    ...
+```
+
+* 1:
+
+```
+    A = [[-1, -1, -2], [-2, -2, -1], [-2, -3, 0]];
+    b = [-6, -8, -6];
+    c = [-2, -1, -3];
+    y = simplexDual(A, b, c, 1);
+```
+
+* 2:
+
+```
+    A = [[-1, -1, -1, -1], [-1, 11, 5, -18], [-1, 3, 1, -2]];
+    b = [-1, 0, 0];
+    c = [1, -7, -1, -2];
+    y = simplexDual(A, b, c, 1);
+```

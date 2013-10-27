@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.IO;
+using System.Reflection;
+using Microsoft.Win32;
 
 namespace T1 {
     static class Program {

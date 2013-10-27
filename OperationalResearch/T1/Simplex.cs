@@ -4,87 +4,220 @@ using System.Linq;
 using System.Text;
 
 namespace T1 {
-    class Simplex {
-        private int m;
-        private int n;
-        private double[][] t;
-        private int[] indices;
-        private double[] solution;
+    public class InfeasibleProblemException : Exception {
+    }
 
-        public delegate void TableauHandler(double[][] t, int[] indices);
-        public event TableauHandler Tableau;
+    public class UnboundedProblemException : Exception {
+    }
 
-        public Simplex(double[][] tableau, int m, int n) {
-            this.t = tableau;
-            this.m = m;
-            this.n = n;
-            this.indices = new int[n + m];
-            this.solution = null;
+    public class SimplexProblem {
+        public bool max;
+        public double[][] A;
+        public double[] b;
+        public double[] c;
 
-            for (int i = 0; i < this.indices.Length; i++) {
-                this.indices[i] = i;
-            }
+        public SimplexProblem(bool max, double[][] A, double[] b, double[] c) {
+            this.max = max;
+            this.A = A;
+            this.b = b;
+            this.c = c;
         }
 
-        /// <summary>
-        /// Initializes the tableau from the 'max c<sup>T</sup>x' and
-        /// 'Ax&lt;=b' form.
-        /// </summary>
-        public static Simplex FromAbc(double[][] A, double[] b, double[] c) {
-            int m = A.Length;
-            int n = A[0].Length;
+        public bool IsInitiallyFeasible() {
+            for (int i = 0; i < b.Length; i++) {
+                if (b[i] < 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public class CompactTableau {
+        public int m;
+        public int n;
+        public double[][] t;
+        public int[] ind;
+        public bool hasU = false;
+        public bool dual = false;
+
+        public CompactTableau(int m, int n, double[][] t, int[] ind,
+                bool hasU) {
+            this.m = m;
+            this.n = n;
+            this.t = t;
+            this.ind = ind;
+            this.hasU = hasU;
+        }
+
+        public double[] MakeSolution() {
+            double[] ret = new double[n];
+
+            for (int i = 0; i < m; i++) {
+                var index = ind[n + i];
+                if (index < n) {
+                    ret[index] = t[i][n];
+                }
+            }
+
+            return ret;
+        }
+
+        public double[] MakeDualSolution() {
+            double[] ret = new double[m];
+
+            for (int j = 0; j < n; j++) {
+                var index = ind[j];
+                if (index < m) {
+                    ret[index] = -t[m][j];
+                }
+            }
+
+            return ret;
+        }
+    }
+
+    class Simplex {
+        public static CompactTableau CreateTableau(SimplexProblem p,
+                Action<string, object> notify) {
+            CompactTableau ct;
+
+            if (p.IsInitiallyFeasible()) {
+                ct = CreateFeasibleTableau(p);
+                if (notify != null) {
+                    notify("Created feasible tableau:", ct);
+                }
+
+                return ct;
+            }
+
+            ct = CreateInfeasibleTableau(p);
+            if (notify != null) {
+                notify("Created infeasible tableau:", ct);
+            }
+
+            PivotInfeasibleTableau(ct);
+            if (notify != null) {
+                notify("Pivoted infeasible tableau:", ct);
+            }
+
+            SolveFeasible(ct, notify);
+
+            TransformToFeasible(ct, p.c);
+            if (notify != null) {
+                notify("Removed column:", ct);
+            }
+
+            return ct;
+        }
+
+        public static CompactTableau CreateFeasibleTableau(SimplexProblem p) {
+            int m = p.A.Length;
+            int n = p.A[0].Length;
 
             double[][] t = new double[m + 1][];
 
             for (int i = 0; i < m; i++) {
                 t[i] = new double[n + 1];
 
-                Array.Copy(A[i], t[i], n);
-                t[i][n] = b[i];
+                Array.Copy(p.A[i], t[i], n);
+                t[i][n] = p.b[i];
             }
             t[m] = new double[n + 1];
-            Array.Copy(c, t[m], n);
+            Array.Copy(p.c, t[m], n);
 
-            return new Simplex(t, m, n);
+            int[] ind = new int[n + m];
+
+            for (int i = 0; i < ind.Length; i++) {
+                ind[i] = i;
+            }
+
+            return new CompactTableau(m, n, t, ind, false);
         }
 
-        public double[] Solution {
-            get {
-                return solution;
+        public static CompactTableau CreateInfeasibleTableau(SimplexProblem p) {
+            int m = p.A.Length;
+            int nOrig = p.A[0].Length;
+            int n = nOrig + 1;
+
+            double[][] t = new double[m + 1][];
+
+            for (int i = 0; i < m; i++) {
+                t[i] = new double[n + 1];
+
+                Array.Copy(p.A[i], t[i], nOrig);
+                t[i][nOrig] = -1;
+                t[i][n] = p.b[i];
             }
+            t[m] = new double[n + 1];
+            t[m][nOrig] = -1;
+
+            int[] ind = new int[n + m];
+
+            for (int i = 0; i < nOrig; i++) {
+                ind[i] = i;
+            }
+
+            ind[nOrig] = ind.Length - 1;
+
+            for (int i = 0; i < m; i++) {
+                ind[n + i] = nOrig + i;
+            }
+
+            return new CompactTableau(m, n, t, ind, true);
         }
 
-        public void Solve() {
-            if (Tableau != null) {
-                Tableau(t, indices);
+        public static void PivotInfeasibleTableau(CompactTableau ct) {
+            int iMin = 0;
+            double iValMin = ct.t[iMin][ct.n];
+
+            for (int i = 1; i < ct.m; i++) {
+                if (ct.t[i][ct.n] < iValMin) {
+                    iValMin = ct.t[i][ct.n];
+                    iMin = i;
+                }
             }
+
+            Pivot(ct, iMin, ct.n - 1);
+        }
+
+        public static void SolveFeasible(CompactTableau ct) {
+            SolveFeasible(ct, null);
+        }
+
+        public static void SolveFeasible(CompactTableau ct,
+                Action<string, object> notify) {
+            int iter = 1;
 
             while (true) {
-                int l = ChooseColumnBland();
+                int l = ChooseColumnBland(ct);
                 if (l == -1) {
                     break; // The optimal solution was found.
                 }
 
-                int k = ChooseRow(l);
+                int k = ChooseRow(ct, l);
+
                 if (k == -1) {
-                    throw new Exception("This is bad.");
+                    if (notify == null) {
+                        throw new UnboundedProblemException();
+                    } else {
+                        notify("Unbounded:", ct);
+                    }
                 }
 
-                Pivot(k, l);
-                ChangeIndices(k, l);
+                Pivot(ct, k, l);
 
-                //PrintTableau();
-                if (Tableau != null) {
-                    Tableau(t, indices);
+                if (notify != null) {
+                    notify("After iteration " + iter, ct);
                 }
+                iter++;
             }
-
-            FormSolution();
         }
 
-        private int ChooseColumnBland() {
-            for (int j = 0; j < n; j++) {
-                if (t[m][j] > 0) {
+        private static int ChooseColumnBland(CompactTableau ct) {
+            for (int j = 0; j < ct.n; j++) {
+                if (ct.t[ct.m][j] > 0) {
                     return j;
                 }
             }
@@ -93,13 +226,13 @@ namespace T1 {
         }
 
         // Use this if you like infinite loops.
-        private int ChooseColumnMax() {
+        private static int ChooseColumnMax(CompactTableau ct) {
             int l = 0;
             double max = Double.MinValue;
             double tmj;
 
-            for (int j = 0; j < n; j++) {
-                tmj = t[m][j];
+            for (int j = 0; j < ct.n; j++) {
+                tmj = ct.t[ct.m][j];
                 if (tmj > 0 && tmj > max) {
                     max = tmj;
                     l = j;
@@ -109,13 +242,14 @@ namespace T1 {
             return l;
         }
 
-        private int ChooseRow(int l) {
+        private static int ChooseRow(CompactTableau ct, int l) {
             int k = -1;
-            double tkmin = Double.MaxValue;
+            double tkmin = double.MaxValue;
+            double[][] t = ct.t;
 
-            for (int i = 0; i < m; i++) {
+            for (int i = 0; i < ct.m; i++) {
                 if (t[i][l] > 0) {
-                    double tk = t[i][n] / t[i][l];
+                    double tk = t[i][ct.n] / t[i][l];
                     if (tk < tkmin) {
                         tkmin = tk;
                         k = i;
@@ -126,13 +260,15 @@ namespace T1 {
             return k;
         }
 
-        private void Pivot(int k, int l) {
-            for (int i = 0; i <= m; i++) {
+        private static void Pivot(CompactTableau ct, int k, int l) {
+            double[][] t = ct.t;
+
+            for (int i = 0; i <= ct.m; i++) {
                 if (i == k) {
                     continue;
                 }
 
-                for (int j = 0; j <= n; j++) {
+                for (int j = 0; j <= ct.n; j++) {
                     if (j == l) {
                         continue;
                     }
@@ -141,48 +277,169 @@ namespace T1 {
                 }
             }
 
-            for (int i = 0; i <= m; i++) {
+            for (int i = 0; i <= ct.m; i++) {
                 if (i != k) {
                     t[i][l] = -t[i][l] / t[k][l];
                 }
             }
 
-            for (int j = 0; j <= n; j++) {
+            for (int j = 0; j <= ct.n; j++) {
                 if (j != l) {
                     t[k][j] /= t[k][l];
                 }
             }
 
             t[k][l] = 1 / t[k][l];
+
+            // Change indices.
+            int tmp = ct.ind[ct.n + k];
+            ct.ind[ct.n + k] = ct.ind[l];
+            ct.ind[l] = tmp;
         }
 
-        private void ChangeIndices(int k, int l) {
-            int tmp = indices[n + k];
-            indices[n + k] = indices[l];
-            indices[l] = tmp;
-        }
+        public static void TransformToFeasible(CompactTableau ct, double[] c) {
+            ct.n--;
 
-        private void PrintTableau() {
-            for (int i = 0; i <= m; i++) {
-                for (int j = 0; j <= n; j++) {
-                    Console.Write(t[i][j] + "\t");
-                }
-                if (i < m) {
-                    Console.WriteLine(indices[n + i] + " ");
+            double[][] t = ct.t;
+            int[] ind = ct.ind;
+            int m = ct.m;
+            int n = ct.n;
+
+            int uIndex = ind.Length - 1;
+
+            // Checking the position of the u in the columns.
+            int uPos = -1;
+            for (int i = 0; i <= n; i++) {
+                if (ind[i] == uIndex) {
+                    uPos = i;
+                    break;
                 }
             }
-            Console.WriteLine("\n");
-        }
 
-        private void FormSolution() {
-            solution = new double[n];
+            if (uPos == -1) {
+                throw new InfeasibleProblemException();
+            }
+
+            // Removing the column.
+            for (int i = 0; i < m; i++) {
+                for (int j = uPos; j <= n; j++) {
+                    t[i][j] = t[i][j + 1];
+                }
+            }
+
+            // Removing the extra index.
+            for (int j = uPos; j < uIndex; j++) {
+                ind[j] = ind[j + 1];
+            }
+
+            // Solving the new objective function.
+            for (int j = 0; j < n; j++) {
+                t[m][j] = (ind[j] < n) ? c[ind[j]] : 0;
+            }
+            t[m][n] = 0;
 
             for (int i = 0; i < m; i++) {
-                var index = indices[n + i];
-                if (index < n) {
-                    solution[index] = t[i][n];
+                if (ind[n + i] < n) {
+                    for (int j = 0; j <= n; j++) {
+                        t[m][j] -= c[ind[n + i]] * t[i][j];
+                    }
                 }
             }
+
+            ct.hasU = false;
+        }
+
+        public static CompactTableau CreateDualTableau(SimplexProblem p,
+                Action<string, object> notify) {
+            int m = p.A[0].Length;
+            int n = p.A.Length;
+
+            double[][] t = new double[m + 1][];
+
+            for (int i = 0; i < m; i++) {
+                t[i] = new double[n + 1];
+                for (int j = 0; j < n; j++) {
+                    t[i][j] = p.A[j][i];
+                }
+                t[i][n] = p.c[i];
+            }
+            t[m] = new double[n + 1];
+            Array.Copy(p.b, t[m], n);
+
+            int[] ind = new int[n + m];
+            for (int j = 0; j < n; j++) {
+                ind[j] = m + j;
+            }
+            for (int i = 0; i < m; i++) {
+                ind[n + i] = i;
+            }
+
+            CompactTableau ct = new CompactTableau(m, n, t, ind, false);
+            ct.dual = true;
+            if (notify != null) {
+                notify("Created dual tableau:", ct);
+            }
+
+            return ct;
+        }
+
+
+
+        public static void SolveDual(CompactTableau ct) {
+            SolveDual(ct, null);
+        }
+
+        public static void SolveDual(CompactTableau ct,
+                Action<string, object> notify) {
+            int iter = 1;
+
+            while (true) {
+                int k = ChooseRowBlandDual(ct);
+                if (k == -1) {
+                    break; // The optimal solution was found.
+                }
+
+                int l = ChooseColumnDual(ct, k);
+
+                if (l == -1) {
+                    throw new UnboundedProblemException();
+                }
+
+                Pivot(ct, k, l);
+
+                if (notify != null) {
+                    notify("After iteration " + iter + ":", ct);
+                }
+                iter++;
+            }
+        }
+
+        private static int ChooseRowBlandDual(CompactTableau ct) {
+            for (int i = 0; i < ct.m; i++) {
+                if (ct.t[i][ct.n] < 0) {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int ChooseColumnDual(CompactTableau ct, int k) {
+            int l = -1;
+            double tlmin = double.MaxValue;
+            double[][] t = ct.t;
+
+            for (int j = 0; j < ct.n; j++) {
+                if (t[k][j] < 0) {
+                    double tl = t[ct.m][j] / t[k][j];
+                    if (tl < tlmin) {
+                        tlmin = tl;
+                        l = j;
+                    }
+                }
+            }
+
+            return l;
         }
     }
 }
