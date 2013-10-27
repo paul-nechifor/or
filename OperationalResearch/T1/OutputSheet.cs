@@ -13,33 +13,34 @@ namespace T1 {
 
         private void AddLine(HtmlElement elem) {
             HtmlElement lineDiv = doc.CreateElement("div");
-            lineDiv.SetAttribute("class", "line");
             lineDiv.AppendChild(elem);
             doc.Body.AppendChild(lineDiv);
         }
 
-        private void AddHtmlLine(string html) {
+        private void AddHtmlLine(string html, bool error) {
             HtmlElement lineDiv = doc.CreateElement("div");
-            lineDiv.SetAttribute("class", "line");
+            if (error) {
+                lineDiv.Style = "color: #F00";
+            }
             lineDiv.InnerHtml = html;
             doc.Body.AppendChild(lineDiv);
         }
 
-        public void  AddValue(object value) {
-            AddHtmlLine(Print(value));
+        public void AddError(string error) {
+            AddHtmlLine(error, true);
         }
 
-        public void AddAsignment(string name, object value) {
-            AddValue(name + " =", value);
+        public void  AddValue(object value) {
+            AddHtmlLine(Print(value), false);
         }
 
         public void AddValue(string label, object value) {
             string format = "<table><tr><td>{0}</td><td>{1}</td></tr></table>";
-            AddHtmlLine(string.Format(format, label, Print(value)));
+            AddHtmlLine(string.Format(format, label, Print(value)), false);
         }
 
-        public void AddError(string error) {
-            AddHtmlLine(error);
+        public void AddAsignment(string name, object value) {
+            AddValue(name + " =", value);
         }
 
         private string Print(object value) {
@@ -51,6 +52,8 @@ namespace T1 {
                 return Print((CompactTableau)value);
             } else if (value is SimplexProblem) {
                 return Print((SimplexProblem)value);
+            } else if (value == null) {
+                return "null";
             } else {
                 return value.ToString();
             }

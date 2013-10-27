@@ -5,9 +5,15 @@ using System.Text;
 
 namespace T1 {
     public class InfeasibleProblemException : Exception {
+        public InfeasibleProblemException()
+            : base("Infeasible problem.") {
+        }
     }
 
     public class UnboundedProblemException : Exception {
+        public UnboundedProblemException()
+            : base("Unbounded problem.") {
+        }
     }
 
     public class SimplexProblem {
@@ -203,11 +209,7 @@ namespace T1 {
                 int k = ChooseRow(ct, l);
 
                 if (k == -1) {
-                    if (notify == null) {
-                        throw new UnboundedProblemException();
-                    } else {
-                        notify("Unbounded:", ct);
-                    }
+                    throw new UnboundedProblemException();
                 }
 
                 Pivot(ct, k, l);

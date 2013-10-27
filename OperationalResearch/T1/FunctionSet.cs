@@ -7,7 +7,7 @@ namespace T1 {
     class FunctionSet {
         private OutputSheet os;
         private Action<string, object> notifyOn;
-        private double epsilon = 1E-5; // 
+        private double epsilon = 1E-5; // Should it be bigger? ¯\(ツ)/¯
 
         public FunctionSet(OutputSheet outputSheet) {
             this.os = outputSheet;

@@ -137,17 +137,25 @@ namespace T1 {
                 for (int i = 0; i < param.Length; i++) {
                     param[i] = Evaluate(expressions[i]);
                     if (param[i] == null) {
-                        outputSheet.AddError("Funcția " + name + " nu poate " +
-                                "fi apelată deoarece expresia „" + expressions[i] +
-                                "“ întoarce null.");
+                        outputSheet.AddError("Can't call " + name +
+                                " because this is null: " + expressions[i]);
                         return null;
                     }
                     types[i] = param[i].GetType();
                 }
 
                 MethodInfo method = functionsType.GetMethod(name, types);
-                object ret = method.Invoke(functionSet, param);
-                return ret;
+                if (method == null) {
+                    outputSheet.AddError("No such method: " + name);
+                    return null;
+                }
+                try {
+                    return method.Invoke(functionSet, param);
+                } catch (Exception ex) {
+                    outputSheet.AddError("Exception: " +
+                            ex.GetBaseException().Message);
+                    return null;
+                }
             } else if (NAME_REGEX.Matches(text).Count > 0) { // A variable.
                 if (!names.ContainsKey(text)) {
                     outputSheet.AddError("No such variable '" + text + "'.");
