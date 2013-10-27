@@ -83,6 +83,10 @@ namespace T1 {
                 Action<string, object> notify) {
             CompactTableau ct;
 
+            if (notify != null) {
+                notify("Problem:", p);
+            }
+
             if (p.IsInitiallyFeasible()) {
                 ct = CreateFeasibleTableau(p);
                 if (notify != null) {
@@ -351,6 +355,10 @@ namespace T1 {
 
         public static CompactTableau CreateDualTableau(SimplexProblem p,
                 Action<string, object> notify) {
+            if (notify != null) {
+                notify("Problem:", p);
+            }
+
             int m = p.A[0].Length;
             int n = p.A.Length;
 
@@ -440,6 +448,94 @@ namespace T1 {
             }
 
             return l;
+        }
+
+        public static SimplexProblem CreateFromMaxFlow(double[][] g, int s,
+                int t) {
+            int nVars = g.Length;
+
+            // Computing the number of nodes there are.
+            int nNodes = 0;
+            for (int i = 0; i < nVars; i++) {
+                if (g[i][0] > nNodes) {
+                    nNodes = (int) g[i][0];
+                }
+                if (g[i][1] > nNodes) {
+                    nNodes = (int) g[i][1];
+                }
+            }
+            nNodes++; // Because g contains indices from 0.
+
+            List<int>[] nodes = new List<int>[nNodes];
+            for (int i = 0; i < nNodes; i++) {
+                nodes[i] = new List<int>();
+            }
+
+            for (int i = 0; i < nVars; i++) {
+                int pos = i + 1;
+                nodes[(int)g[i][0]].Add(-pos);
+                nodes[(int)g[i][1]].Add(pos);
+            }
+
+            double[][] A = new double[nVars + 2 * nNodes - 4][];
+            double[] b = new double[A.Length];
+
+            for (int i = 0; i < A.Length; i++) {
+                A[i] = new double[nVars];
+            }
+
+            // The capacity restrictions.
+            for (int i = 0; i < nVars; i++) {
+                A[i][i] = 1;
+                b[i] = g[i][2];
+            }
+
+            // The node restrictions.
+            for (int i = 0, k = nVars; i < nNodes; i++) {
+                if (i == s || i == t) {
+                    continue;
+                }
+                foreach (int pos in nodes[i]) {
+                    int positive = (pos < 0) ? -1 : 1;
+                    int varIndex = (pos < 0) ? (-pos - 1) : (pos - 1);
+                    A[k][varIndex] = positive;
+                    A[k + 1][varIndex] = -positive;
+                }
+                k += 2;
+            }
+
+            // Setting the optimization coeficients. The sum of all the
+            // variables who exit the entry node.
+            double[] c = new double[nVars];
+            foreach (int exit in nodes[s]) {
+                if (exit < 0) {
+                    c[-exit - 1] = 1;
+                }
+            }
+
+            return new SimplexProblem(true, A, b, c);
+        }
+
+        public static string SixPapFormat(SimplexProblem p) {
+            int m = p.A.Length;
+            int n = p.A[0].Length;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("objective: MAX\nm: {0}\ns: {1}\n", m, n);
+            sb.Append("C(j):");
+            for (var j = 0; j < n; j++) {
+                sb.Append(" " + p.c[j]);
+            }
+            sb.Append("\nconstraints:\n");
+
+            for (var i = 0; i < m; i++) {
+                sb.AppendFormat("({0}):", i + 1);
+                for (var j = 0; j < n; j++) {
+                    sb.Append(" " + p.A[i][j]);
+                }
+                sb.AppendFormat(" < {0}\n", p.b[i]);
+            }
+
+            return sb.ToString();
         }
     }
 }

@@ -1,15 +1,16 @@
 Operational Research Homework
 =============================
 
-## Examples for T1C
+## Problems for T1C
 
-* the homework example:
+* the example problem:
 
 ```
     A = [[0.5, -5.5, -2.5, 9], [0.5, -1.5, -0.5, 1], [1, 0, 0, 0]];
     b = [0, 0, 1];
     c = [10, -57, -9, -24];
-    x = simplex(A, b, c, 1)
+    x = simplex(A, b, c, 1);
+    equal(x, [1, 0, 1, 0]);
 ```
 
 * A3:
@@ -19,6 +20,15 @@ Operational Research Homework
     b = [14, 16];
     c = [20, 25];
     x = simplex(A, b, c, 1);
+    equal(x, [10, 40]);
+```
+
+* B3:
+
+```
+    g = [[0, 1, 3], [0, 2, 6], [0, 3, 2], [1, 2, 2], [2, 3, 5], [1, 4, 4], [1, 5, 2], [2, 5, 3], [3, 5, 3], [3, 6, 4], [4, 5, 4], [5, 6, 2], [4, 7, 4], [6, 7, 5]];
+    x = simplexMaxFlow(g, 0, 7, 1);
+    equal(x, [3, 3, 2, 0, 2, 3, 0, 1, 0, 4, 0, 1, 3, 5]);
 ```
 
 * c1:
@@ -28,6 +38,7 @@ Operational Research Homework
     b = [6, 8, 6];
     c = [2, 1, 3];
     x = simplex(A, b, c, 1);
+    equal(x, [3, 0, 1.5]);
 ```
 
 * c2:
@@ -37,17 +48,19 @@ Operational Research Homework
     b = [1, 0, 0];
     c = [-1, 7, 1, 2];
     x = simplex(A, b, c, 1);
+    equal(x, [0, 1, 0, 0]);
 ```
 
-## Examples for T1D
+## Problems for T1D
 
-* the homework example:
+* the example problem:
 
 ```
     A = [[2, 1, 1], [1, -1, 0], [1, 0, -1]];
     b = [4, -1, -2];
     c = [1, 1, -2];
     x = simplex(A, b, c, 1);
+    equal(x, [0, 2, 2]);
 ```
 
 * 1:
@@ -66,23 +79,29 @@ Operational Research Homework
     b = [-2, 10, -1];
     c = [1, 0, 3, -2];
     x = simplex(A, b, c, 1);
+    equal(x, [0, 3.5, 9, 1]);
 ```
 
-## Examples for T1E
+## Problems for T1E
 
-* the homework example:
+* the example problem:
 
 ```
     A = [[1, -1], [-2, -1], [-1, 2]];
     b = [-1, -4, 0];
     c = [2, -3];
     y = simplexDual(A, b, c, 1);
+    equal(y, [1, 2]);
 ```
 
 * A3:
 
 ```
-    ...
+    A = [[0.4, 0.2], [0.3, 0.3]];
+    b = [20, 25];
+    c = [16, 14];
+    y = simplexDual(A, b, c, 1);
+    equal(y, [0, 0]); ?????????????????????????????????????????????????????????
 ```
 
 * 1:
@@ -92,6 +111,7 @@ Operational Research Homework
     b = [-6, -8, -6];
     c = [-2, -1, -3];
     y = simplexDual(A, b, c, 1);
+    equal(y, [3, 0, 1.5]);
 ```
 
 * 2:
@@ -101,4 +121,5 @@ Operational Research Homework
     b = [-1, 0, 0];
     c = [1, -7, -1, -2];
     y = simplexDual(A, b, c, 1);
+    equal(y, [0, 1, 0, 0]);
 ```

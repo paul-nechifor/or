@@ -8,7 +8,7 @@
         font-size: 14px;
       }
 
-      .simplex-tableau, .simplex-dual-tableau {
+      .simplex-tableau, .simplex-dual-tableau, .simplex-problem {
         border-collapse:collapse;
         margin-bottom: 15px;
         margin-top: 15px;
@@ -49,10 +49,19 @@
         border-left: 1px solid #000;
       }
       
+      .simplex-problem {
+        border-left: 1px solid #000;
+      }
+      
+      .simplex-problem td.first {
+        text-align: right;
+      }
+      
       table.matrix {
         border: 1px solid #000;
         border-width: 0 1px;
       }
+      
       table.matrix td {
         text-align: right;
         padding: 2px 4px;

@@ -49,6 +49,8 @@ namespace T1 {
                 return Print((double[][])value);
             } else if (value is CompactTableau) {
                 return Print((CompactTableau)value);
+            } else if (value is SimplexProblem) {
+                return Print((SimplexProblem)value);
             } else {
                 return value.ToString();
             }
@@ -182,6 +184,63 @@ namespace T1 {
             }
 
             return "x<sub>" + (ct.ind[j] + 1) + "</sub>";
+        }
+
+        private string Print(SimplexProblem p) {
+            int m = p.A.Length;
+            int n = p.A[0].Length;
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("<table class='simplex-problem'>");
+
+            sb.AppendFormat("<tr><td class='first'>{0} ",
+                    p.max ? "max" : "min");
+            string comp = p.max ? "≤" : "≥";
+            string name = p.max ? "x" : "y";
+            bool first = true;
+            for (int j = 0; j < n; j++) {
+                AddX(sb, name, p.c[j], j, ref first);
+            }
+            sb.Append("</td></tr>");
+
+            for (int i = 0; i < m; i++) {
+                sb.Append("<tr><td class='first'>");
+                first = true;
+                for (int j = 0; j < n; j++) {
+                    AddX(sb, name, p.A[i][j], j, ref first);
+                }
+                sb.AppendFormat("</td><td>{0}</td><td>{1:0.###}</td></tr>",
+                        comp, p.b[i]);
+            }
+
+            sb.Append("<tr><td class='first'>");
+            for (int j = 0; j < n; j++) {
+                if (j > 0) {
+                    sb.Append(",");
+                }
+                sb.AppendFormat("{0}<sub>{1}</sub>", name, j + 1);
+            }
+            sb.Append("</td><td>≥</td><td>0</td></tr>");
+
+            sb.Append("</table>");
+
+            return sb.ToString();
+        }
+
+        private static void AddX(StringBuilder sb, string name, double v,
+                int index, ref bool first) {
+            if (v == 0) {
+                return;
+            }
+            string sgn = v < 0 ? "−" : (first ? "" : "+");
+            first = false;
+            if (v < 0) {
+                v = -v;
+            }
+            string cof = v == 1 ? "" : String.Format("{0:0.###}", v);
+            sb.AppendFormat("{0}{1}{2}<sub>{3}</sub>", sgn, cof, name,
+                    index + 1);
         }
     }
 }
