@@ -1,9 +1,24 @@
 Operational Research Homework
 =============================
 
-## Problems for T1C
+## Problems
 
-* the example problem:
+- [T1C-e](#t1c-e)
+- [T1C-A3](#t1c-a3)
+- [T1C-B3](#t1c-b3)
+- [T1C-c1](#t1c-c1)
+- [T1C-c2](#t1c-c2)
+- [T1D-e](#t1d-e)
+- [T1D-1](#t1d-1)
+- [T1D-2](#t1d-2)
+- [T1E-e](#t1e-e)
+- [T1E-A3](#t1e-a3)
+- [T1E-1](#t1e-1)
+- [T1E-2](#t1e-2)
+- [T2A](#t2a)
+- [T2B-a](#t2b-a)
+
+### T1C-e
 
 ```
     A = [[0.5, -5.5, -2.5, 9], [0.5, -1.5, -0.5, 1], [1, 0, 0, 0]];
@@ -13,7 +28,7 @@ Operational Research Homework
     equal(x, [1, 0, 1, 0]);
 ```
 
-* A3:
+### T1C-A3
 
 ```
     A = [[0.2, 0.3], [0.4, 0.3]];
@@ -23,7 +38,7 @@ Operational Research Homework
     equal(x, [10, 40]);
 ```
 
-* B3:
+### T1C-B3
 
 ```
     g = [[0, 1, 3], [0, 2, 6], [0, 3, 2], [1, 2, 2], [2, 3, 5], [1, 4, 4], [1, 5, 2], [2, 5, 3], [3, 5, 3], [3, 6, 4], [4, 5, 4], [5, 6, 2], [4, 7, 4], [6, 7, 5]];
@@ -31,7 +46,7 @@ Operational Research Homework
     equal(x, [3, 3, 2, 0, 2, 3, 0, 1, 0, 4, 0, 1, 3, 5]);
 ```
 
-* c1:
+### T1C-c1
 
 ```
     A = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
@@ -41,7 +56,7 @@ Operational Research Homework
     equal(x, [3, 0, 1.5]);
 ```
 
-* c2:
+### T1C-c2
 
 ```
     A = [[1, 1, 1, 1], [1, -11, -5, 18], [1, -3, -1, 2]];
@@ -51,9 +66,7 @@ Operational Research Homework
     equal(x, [0, 1, 0, 0]);
 ```
 
-## Problems for T1D
-
-* the example problem:
+### T1D-e
 
 ```
     A = [[2, 1, 1], [1, -1, 0], [1, 0, -1]];
@@ -63,7 +76,7 @@ Operational Research Homework
     equal(x, [0, 2, 2]);
 ```
 
-* 1:
+### T1D-1
 
 ```
     A = [[1, -3, 1], [2, 2, -1], [2, 1, -2]];
@@ -72,7 +85,7 @@ Operational Research Homework
     x = simplex(A, b, c);
 ```
 
-* 2:
+### T1D-2
 
 ```
     A = [[1, 2, -1, 0], [2, 0, 1, 1], [1, 0, 0, -1]];
@@ -82,9 +95,7 @@ Operational Research Homework
     equal(x, [0, 3.5, 9, 1]);
 ```
 
-## Problems for T1E
-
-* the example problem:
+### T1E-e
 
 ```
     A = [[1, -1], [-2, -1], [-1, 2]];
@@ -94,7 +105,7 @@ Operational Research Homework
     equal(y, [1, 2]);
 ```
 
-* A3:
+### T1E-A3
 
 ```
     A = [[-0.4, -0.3], [-0.2, -0.3]];
@@ -104,7 +115,7 @@ Operational Research Homework
     equal(y, [10, 40]);
 ```
 
-* 1:
+### T1E-1
 
 ```
     A = [[-1, -1, -2], [-2, -2, -1], [-2, -3, 0]];
@@ -114,7 +125,7 @@ Operational Research Homework
     equal(y, [3, 0, 1.5]);
 ```
 
-* 2:
+### T1E-2
 
 ```
     A = [[-1, -1, -1, -1], [-1, 11, 5, -18], [-1, 3, 1, -2]];
@@ -123,13 +134,12 @@ Operational Research Homework
     y = simplexDual(A, b, c);
     equal(y, [0, 1, 0, 0]);
 ```
-## Problems for T2A
+
+### T2A
 
 ...
 
-## Problems for T2B
-
-* a:
+### T2B-a
 
 ```
     A = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
@@ -143,3 +153,4 @@ Operational Research Homework
     x2restart = simplexRestart(mat, A2, b2, c2);
     equal(x2, x2restart);
 ```
+
