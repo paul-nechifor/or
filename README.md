@@ -9,7 +9,7 @@ Operational Research Homework
     A = [[0.5, -5.5, -2.5, 9], [0.5, -1.5, -0.5, 1], [1, 0, 0, 0]];
     b = [0, 0, 1];
     c = [10, -57, -9, -24];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
     equal(x, [1, 0, 1, 0]);
 ```
 
@@ -19,7 +19,7 @@ Operational Research Homework
     A = [[0.2, 0.3], [0.4, 0.3]];
     b = [14, 16];
     c = [20, 25];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
     equal(x, [10, 40]);
 ```
 
@@ -27,7 +27,7 @@ Operational Research Homework
 
 ```
     g = [[0, 1, 3], [0, 2, 6], [0, 3, 2], [1, 2, 2], [2, 3, 5], [1, 4, 4], [1, 5, 2], [2, 5, 3], [3, 5, 3], [3, 6, 4], [4, 5, 4], [5, 6, 2], [4, 7, 4], [6, 7, 5]];
-    x = simplexMaxFlow(g, 0, 7, 1);
+    x = simplexMaxFlow(g, 0, 7);
     equal(x, [3, 3, 2, 0, 2, 3, 0, 1, 0, 4, 0, 1, 3, 5]);
 ```
 
@@ -37,7 +37,7 @@ Operational Research Homework
     A = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
     b = [6, 8, 6];
     c = [2, 1, 3];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
     equal(x, [3, 0, 1.5]);
 ```
 
@@ -47,7 +47,7 @@ Operational Research Homework
     A = [[1, 1, 1, 1], [1, -11, -5, 18], [1, -3, -1, 2]];
     b = [1, 0, 0];
     c = [-1, 7, 1, 2];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
     equal(x, [0, 1, 0, 0]);
 ```
 
@@ -59,7 +59,7 @@ Operational Research Homework
     A = [[2, 1, 1], [1, -1, 0], [1, 0, -1]];
     b = [4, -1, -2];
     c = [1, 1, -2];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
     equal(x, [0, 2, 2]);
 ```
 
@@ -69,7 +69,7 @@ Operational Research Homework
     A = [[1, -3, 1], [2, 2, -1], [2, 1, -2]];
     b = [-1, 4, 2];
     c = [2, -2, 1];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
 ```
 
 * 2:
@@ -78,7 +78,7 @@ Operational Research Homework
     A = [[1, 2, -1, 0], [2, 0, 1, 1], [1, 0, 0, -1]];
     b = [-2, 10, -1];
     c = [1, 0, 3, -2];
-    x = simplex(A, b, c, 1);
+    x = simplex(A, b, c);
     equal(x, [0, 3.5, 9, 1]);
 ```
 
@@ -90,7 +90,7 @@ Operational Research Homework
     A = [[1, -1], [-2, -1], [-1, 2]];
     b = [-1, -4, 0];
     c = [2, -3];
-    y = simplexDual(A, b, c, 1);
+    y = simplexDual(A, b, c);
     equal(y, [1, 2]);
 ```
 
@@ -100,7 +100,7 @@ Operational Research Homework
     A = [[-0.4, -0.3], [-0.2, -0.3]];
     b = [-16, -14];
     c = [-20, -25];
-    y = simplexDual(A, b, c, 1);
+    y = simplexDual(A, b, c);
     equal(y, [10, 40]);
 ```
 
@@ -110,7 +110,7 @@ Operational Research Homework
     A = [[-1, -1, -2], [-2, -2, -1], [-2, -3, 0]];
     b = [-6, -8, -6];
     c = [-2, -1, -3];
-    y = simplexDual(A, b, c, 1);
+    y = simplexDual(A, b, c);
     equal(y, [3, 0, 1.5]);
 ```
 
@@ -120,7 +120,26 @@ Operational Research Homework
     A = [[-1, -1, -1, -1], [-1, 11, 5, -18], [-1, 3, 1, -2]];
     b = [-1, 0, 0];
     c = [1, -7, -1, -2];
-    y = simplexDual(A, b, c, 1);
+    y = simplexDual(A, b, c);
     equal(y, [0, 1, 0, 0]);
 ```
+## Problems for T2A
 
+...
+
+## Problems for T2B
+
+* a:
+
+```
+    A = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
+    b = [6, 8, 6];
+    c = [2, 1, 3];
+    mat = simplexMat(A, b, c);
+    A2 = [[0.5, 1.5, 2], [2.5, 3, 1], [2, 2.5, 0]];
+    b2 = [5, 9, 6.5];
+    c2 = [2.5, 1, 2.5];
+    x2 = simplex2(A2, b2, c2);
+    x2restart = simplexRestart(mat, A2, b2, c2);
+    equal(x2, x2restart);
+```

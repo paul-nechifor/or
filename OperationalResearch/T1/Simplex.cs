@@ -696,5 +696,142 @@ namespace T1 {
             // Change indices.
             bt.ind[k] = l;
         }
+
+        public static BigTableau CreateBigRestartedTableau(double[][] mat,
+                double[][] A, double[] b, double[] c) {
+            int m = mat.Length - 1;
+            int n = mat[0].Length - 1;
+            int nVar = n - m;
+
+            double[][] t = new double[m + 1][];
+
+            // Allocating new matrix and setting the middle S* and y*T.
+            for (int i = 0; i <= m; i++) {
+                t[i] = new double[n + 1];
+                Array.Copy(mat[i], nVar, t[i], nVar, m);
+            }
+
+            // Setting S*b.
+            double sum;
+            for (int i = 0; i < m; i++) {
+                sum = 0.0;
+                for (int j = 0; j < m; j++) {
+                    sum += mat[i][nVar + j] * b[j];
+                }
+                t[i][n] = sum;
+            }
+
+            // Setting y*Tb.
+            sum = 0.0;
+            for (int j = 0; j < m; j++) {
+                sum += mat[m][nVar + j] * b[j];
+            }
+            t[m][n] = sum;
+
+            // Setting S*A.
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < nVar; j++) {
+                    sum = 0.0;
+                    for (int k = 0; k < nVar; k++) {
+                        sum += mat[i][nVar + k] * A[k][j];
+                    }
+                    t[i][j] = sum;
+                }
+            }
+
+            // Setting y*TA-cT.
+            for (int j = 0; j < nVar; j++) {
+                sum = 0.0;
+                for (int i = 0; i < m; i++) {
+                    sum += mat[m][nVar + i] * A[i][j];
+                }
+                t[m][j] = sum - c[j];
+            }
+
+            int[] ind = new int[m];
+            for (int i = 0; i < m; i++) {
+                ind[i] = -1;
+            }
+
+            return new BigTableau(m, n, t, ind);
+        }
+
+        public static void FixBigRestartedTableau(BigTableau bt,
+                Action<string, object> notify) {
+            if (notify != null) {
+                notify("Initial is:", bt);
+            }
+
+            int m = bt.m;
+            int n = bt.n;
+
+            for (int i = 0; i < m; i++) {
+                int index = GetRowLabel(bt.t, m, n, i);
+                if (index != -1) {
+                    bt.ind[i] = index;
+                }
+            }
+
+            if (notify != null) {
+                notify("After labeling:", bt);
+            }
+
+            for (int i = 0; i < m; i++) {
+                Pivot(bt, i, i);
+            }
+
+            if (notify != null) {
+                notify("After second labeling:", bt);
+            }
+
+            for (var i = 0; i < m; i++) {
+                if (bt.t[i][n] <= 0) {
+                    throw new InfeasibleProblemException();
+                }
+            }
+
+            bool done = true;
+            for (var j = 0; j < n; j++) {
+                if (bt.t[m][j] < 0) {
+                    done = false;
+                    break;
+                }
+            }
+
+            if (done) {
+                return;
+            }
+
+            SolveBig(bt, notify);
+
+            if (notify != null) {
+                notify("After solving:", bt);
+            }
+        }
+
+        // Wow, such elegance in code! /s
+        public static int GetRowLabel(double[][] t, int m, int n, int i) {
+            for (int j = 0; j < n; j++) {
+                if (Math.Abs(t[i][j] - 1.0) > double.Epsilon ||
+                        Math.Abs(t[m][j]) > double.Epsilon) {
+                    continue;
+                }
+
+                int k;
+                for (k = 0; k < m; k++) {
+                    if (k != i && Math.Abs(t[k][j]) > double.Epsilon) {
+                        break;
+                    }
+                }
+
+                if (k == m) {
+                    return j;
+                }
+
+                continue;
+            }
+
+            return -1;
+        }
     }
 }

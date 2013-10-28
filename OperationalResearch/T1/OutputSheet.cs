@@ -71,7 +71,7 @@ namespace T1 {
             for (var i = 0; i < m.Length; i++) {
                 sb.Append("<tr>");
                 for (var j = 0; j < m[0].Length; j++) {
-                    sb.AppendFormat("<td>{0}</td>", m[i][j]);
+                    sb.AppendFormat("<td>{0:0.###}</td>", m[i][j]);
                 }
                 sb.Append("</tr>");
             }
