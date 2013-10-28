@@ -52,6 +52,8 @@ namespace T1 {
                 return Print((CompactTableau)value);
             } else if (value is SimplexProblem) {
                 return Print((SimplexProblem)value);
+            } else if (value is BigTableau) {
+                return Print((BigTableau)value);
             } else if (value == null) {
                 return "null";
             } else {
@@ -187,6 +189,39 @@ namespace T1 {
             }
 
             return "x<sub>" + (ct.ind[j] + 1) + "</sub>";
+        }
+
+        private string Print(BigTableau bt) {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("<table class='big-tableau'>");
+
+            sb.Append("<tr><td class='header first'>&nbsp;</td>");
+            for (int j = 0; j < bt.n; j++) {
+                sb.AppendFormat("<td class='header'>x<sub>{0}</sub></td>",
+                        j + 1);
+            }
+            sb.Append("<td class='header last'>RHS</td></tr>");
+
+            for (int i = 0; i < bt.m; i++) {
+                sb.AppendFormat("<tr><td class='first'>x<sub>{0}</sub></td>",
+                        bt.ind[i] + 1);
+                for (int j = 0; j < bt.n; j++) {
+                    sb.AppendFormat("<td>{0:0.###}</td>", bt.t[i][j]);
+                }
+                sb.AppendFormat("<td class='last'>{0:0.###}</td></tr>",
+                        bt.t[i][bt.n]);
+            }
+
+            sb.Append("<tr><td class='footer first'>z</td>");
+            for (int j = 0; j < bt.n; j++) {
+                sb.AppendFormat("<td class='footer'>{0:0.###}</td>",
+                        bt.t[bt.m][j]);
+            }
+            sb.AppendFormat("<td class='footer last'>{0:0.###}</td></tr>",
+                    bt.t[bt.m][bt.n]);
+
+            return sb.ToString();
         }
 
         private string Print(SimplexProblem p) {

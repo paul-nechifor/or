@@ -84,6 +84,32 @@ namespace T1 {
         }
     }
 
+    public class BigTableau {
+        public int m;
+        public int n;
+        public double[][] t;
+        public int[] ind;
+
+        public BigTableau(int m, int n, double[][] t, int[] ind) {
+            this.m = m;
+            this.n = n;
+            this.t = t;
+            this.ind = ind;
+        }
+
+        public double[] MakeSolution() {
+            double[] ret = new double[n - m];
+
+            for (int i = 0; i < m; i++) {
+                if (ind[i] < ret.Length) {
+                    ret[ind[i]] = t[i][n];
+                }
+            }
+
+            return ret;
+        }
+    }
+
     class Simplex {
         public static CompactTableau CreateTableau(SimplexProblem p,
                 Action<string, object> notify) {
@@ -507,11 +533,11 @@ namespace T1 {
             }
 
             // Setting the optimization coeficients. The sum of all the
-            // variables who exit the entry node.
+            // variables who enter the exit node.
             double[] c = new double[nVars];
-            foreach (int exit in nodes[s]) {
-                if (exit < 0) {
-                    c[-exit - 1] = 1;
+            foreach (int entry in nodes[t]) {
+                if (entry > 0) {
+                    c[entry - 1] = 1;
                 }
             }
 
@@ -538,6 +564,137 @@ namespace T1 {
             }
 
             return sb.ToString();
+        }
+
+        public static BigTableau CreateBigTableau(SimplexProblem p,
+                Action<string, object> notify) {
+            if (notify != null) {
+                notify("Problem:", p);
+            }
+
+            int m = p.A.Length;
+            int nVars = p.A[0].Length;
+            int n = m + nVars;
+
+            double[][] t = new double[m + 1][];
+
+            for (int i = 0; i < m; i++) {
+                t[i] = new double[n + 1];
+
+                Array.Copy(p.A[i], t[i], nVars);
+                t[i][nVars + i] = 1;
+                t[i][n] = p.b[i];
+            }
+            t[m] = new double[n + 1];
+            for (int i = 0; i < nVars; i++) {
+                t[m][i] = -p.c[i];
+            }
+
+            int[] ind = new int[m];
+
+            for (int i = 0; i < ind.Length; i++) {
+                ind[i] = nVars + i;
+            }
+
+            BigTableau bt = new BigTableau(m, n, t, ind);
+
+            if (notify != null) {
+                notify("Created tableau:", bt);
+            }
+
+            return bt;
+        }
+
+        public static void SolveBig(BigTableau ct) {
+            SolveBig(ct, null);
+        }
+
+        public static void SolveBig(BigTableau ct,
+                Action<string, object> notify) {
+            int iter = 1;
+
+            while (true) {
+                int l = ChooseColumnBland(ct);
+                if (l == -1) {
+                    break; // The optimal solution was found.
+                }
+
+                int k = ChooseRow(ct, l);
+
+                if (k == -1) {
+                    throw new UnboundedProblemException();
+                }
+
+                Pivot(ct, k, l);
+
+                if (notify != null) {
+                    notify("After iteration " + iter, ct);
+                }
+                iter++;
+            }
+        }
+
+        private static int ChooseColumnBland(BigTableau bt) {
+            for (int j = 0; j < bt.n; j++) {
+                if (bt.t[bt.m][j] < 0) {
+                    return j;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int ChooseRow(BigTableau bt, int l) {
+            int k = -1;
+            double tkmin = double.MaxValue;
+            double[][] t = bt.t;
+
+            for (int i = 0; i < bt.m; i++) {
+                if (t[i][l] > 0) {
+                    double tk = t[i][bt.n] / t[i][l];
+                    if (tk < tkmin) {
+                        tkmin = tk;
+                        k = i;
+                    }
+                }
+            }
+
+            return k;
+        }
+
+        private static void Pivot(BigTableau bt, int k, int l) {
+            double[][] t = bt.t;
+
+            for (int i = 0; i <= bt.m; i++) {
+                if (i == k) {
+                    continue;
+                }
+
+                for (int j = 0; j <= bt.n; j++) {
+                    if (j == l) {
+                        continue;
+                    }
+
+                    t[i][j] = (t[i][j] * t[k][l] - t[i][l] * t[k][j]) / t[k][l];
+                }
+            }
+
+            for (int i = 0; i <= bt.m; i++) {
+                if (i != k) {
+                    t[i][l] = 0;
+                }
+            }
+
+            for (int j = 0; j <= bt.n; j++) {
+                if (j != l) {
+                    t[k][j] /= t[k][l];
+                }
+            }
+
+            t[k][l] = 1;
+
+            // Change indices.
+            bt.ind[k] = l;
         }
     }
 }

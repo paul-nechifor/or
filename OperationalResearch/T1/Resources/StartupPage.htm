@@ -8,13 +8,13 @@
         font-size: 14px;
       }
 
-      .simplex-tableau, .simplex-dual-tableau, .simplex-problem {
+      .simplex-tableau, .simplex-dual-tableau, .simplex-problem, .big-tableau {
         border-collapse:collapse;
         margin-bottom: 15px;
         margin-top: 15px;
       }
 
-      .simplex-tableau td, .simplex-dual-tableau td {
+      .simplex-tableau td, .simplex-dual-tableau td, .big-tableau td {
         padding: 2px 4px;
         text-align: right;
       }
@@ -46,6 +46,22 @@
       }
       
       .simplex-dual-tableau td.last {
+        border-left: 1px solid #000;
+      }
+      
+      .big-tableau td.header {
+        border-bottom: 1px solid #000;
+      }
+      
+      .big-tableau td.footer {
+        border-top: 1px solid #000;
+      }
+      
+      .big-tableau td.first {
+        border-right: 1px solid #000;
+      }
+      
+      .big-tableau td.last {
         border-left: 1px solid #000;
       }
       

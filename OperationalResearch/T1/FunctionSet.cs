@@ -44,6 +44,20 @@ namespace T1 {
             return ct.MakeSolution();
         }
 
+        public double[] simplex2(double[][] A, double[] b, double[] c) {
+            return simplex2(A, b, c, 0);
+        }
+
+        public double[] simplex2(double[][] A, double[] b, double[] c,
+                int trace) {
+            SimplexProblem p = new SimplexProblem(true, A, b, c);
+            var notify = trace != 0 ? notifyOn : null;
+
+            BigTableau bt = Simplex.CreateBigTableau(p, notify);
+            Simplex.SolveBig(bt, notify);
+            return bt.MakeSolution();
+        }
+
         public double[] simplexDual(double[][] A, double[] b, double[] c) {
             return simplexDual(A, b, c, 0);
         }
@@ -69,6 +83,17 @@ namespace T1 {
             CompactTableau ct = Simplex.CreateTableau(p, notify);
             Simplex.SolveFeasible(ct, notify);
             return ct.MakeSolution();
+        }
+
+        // TODO: Remove this. Create a max flow function which returns just
+        // a SimplexProblem.
+        public double[] simplex2MaxFlow(double[][] g, int s, int t, int trace) {
+            SimplexProblem p = Simplex.CreateFromMaxFlow(g, s, t);
+            var notify = trace != 0 ? notifyOn : null;
+
+            BigTableau bt = Simplex.CreateBigTableau(p, notify);
+            Simplex.SolveBig(bt, notify);
+            return bt.MakeSolution();
         }
     }
 }
