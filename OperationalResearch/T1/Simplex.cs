@@ -697,18 +697,18 @@ namespace T1 {
             bt.ind[k] = l;
         }
 
-        public static BigTableau CreateBigRestartedTableau(double[][] mat,
-                double[][] A, double[] b, double[] c) {
-            int m = mat.Length - 1;
-            int n = mat[0].Length - 1;
+        public static BigTableau CreateBigRestartedTableau(BigTableau bt,
+                SimplexProblem p) {
+            int m = bt.m;
+            int n = bt.n;
             int nVar = n - m;
-
-            double[][] t = new double[m + 1][];
+            double[][] t1 = bt.t;
+            double[][] t2 = new double[m + 1][];
 
             // Allocating new matrix and setting the middle S* and y*T.
             for (int i = 0; i <= m; i++) {
-                t[i] = new double[n + 1];
-                Array.Copy(mat[i], nVar, t[i], nVar, m);
+                t2[i] = new double[n + 1];
+                Array.Copy(t1[i], nVar, t2[i], nVar, m);
             }
 
             // Setting S*b.
@@ -716,26 +716,26 @@ namespace T1 {
             for (int i = 0; i < m; i++) {
                 sum = 0.0;
                 for (int j = 0; j < m; j++) {
-                    sum += mat[i][nVar + j] * b[j];
+                    sum += t1[i][nVar + j] * p.b[j];
                 }
-                t[i][n] = sum;
+                t2[i][n] = sum;
             }
 
             // Setting y*Tb.
             sum = 0.0;
             for (int j = 0; j < m; j++) {
-                sum += mat[m][nVar + j] * b[j];
+                sum += t1[m][nVar + j] * p.b[j];
             }
-            t[m][n] = sum;
+            t2[m][n] = sum;
 
             // Setting S*A.
             for (int i = 0; i < m; i++) {
                 for (int j = 0; j < nVar; j++) {
                     sum = 0.0;
                     for (int k = 0; k < nVar; k++) {
-                        sum += mat[i][nVar + k] * A[k][j];
+                        sum += t1[i][nVar + k] * p.A[k][j];
                     }
-                    t[i][j] = sum;
+                    t2[i][j] = sum;
                 }
             }
 
@@ -743,19 +743,83 @@ namespace T1 {
             for (int j = 0; j < nVar; j++) {
                 sum = 0.0;
                 for (int i = 0; i < m; i++) {
-                    sum += mat[m][nVar + i] * A[i][j];
+                    sum += t1[m][nVar + i] * p.A[i][j];
                 }
-                t[m][j] = sum - c[j];
+                t2[m][j] = sum - p.c[j];
             }
 
+            // Copying the labels.
             int[] ind = new int[m];
-            for (int i = 0; i < m; i++) {
-                ind[i] = -1;
-            }
+            Array.Copy(bt.ind, ind, m);
 
-            return new BigTableau(m, n, t, ind);
+            return new BigTableau(m, n, t2, ind);
         }
 
+        public static void FixBigRestartedTableau(BigTableau bt,
+                Action<string, object> notify) {
+            for (var i = 0; i < bt.m; i++) {
+                if (!IsGoodColumn(bt, i)) {
+                    Pivot(bt, i, bt.ind[i]);
+
+                    if (notify != null) {
+                        notify("After pivoting " + (i + 1) + "," + (bt.ind[i] + 1) + ":", bt);
+                    }
+                } else {
+                    if (notify != null) {
+                        notify("Not pivoting:", i + 1);
+                    }
+                }
+            }
+
+            if (notify != null) {
+                notify("After pivoting:", bt);
+            }
+
+            for (var i = 0; i < bt.m; i++) {
+                if (bt.t[i][bt.n] <= 0) {
+                    throw new InfeasibleProblemException();
+                }
+            }
+
+            bool done = true;
+            for (var j = 0; j < bt.n; j++) {
+                if (bt.t[bt.m][j] < 0) {
+                    done = false;
+                    break;
+                }
+            }
+
+            if (done) {
+                return;
+            }
+
+            SolveBig(bt, notify);
+
+            if (notify != null) {
+                notify("After solving:", bt);
+            }
+        }
+
+        public static bool IsGoodColumn(BigTableau bt, int i) {
+            int j = bt.ind[i];
+            if (bt.t[bt.m][j] > double.Epsilon) {
+                return false;
+            }
+
+            if (Math.Abs(bt.t[i][j] - 1.0) > double.Epsilon) {
+                return false;
+            }
+
+            for (int k = 0; k < bt.m; k++) {
+                if (k != i && bt.t[k][j] > double.Epsilon) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /*
         public static void FixBigRestartedTableau(BigTableau bt,
                 Action<string, object> notify) {
             if (notify != null) {
@@ -832,6 +896,6 @@ namespace T1 {
             }
 
             return -1;
-        }
+        }*/
     }
 }

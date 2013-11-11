@@ -142,15 +142,19 @@ Operational Research Homework
 ### T2B-a
 
 ```
-    A = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
-    b = [6, 8, 6];
-    c = [2, 1, 3];
-    mat = simplexMat(A, b, c);
+    A1 = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
+    b1 = [6, 8, 6];
+    c1 = [2, 1, 3];
+    p1 = simplexProblem(A1, b1, c1);
+    x1 = simplex2(p1);
+    
     A2 = [[0.5, 1.5, 2], [2.5, 3, 1], [2, 2.5, 0]];
     b2 = [5, 9, 6.5];
     c2 = [2.5, 1, 2.5];
-    x2 = simplex2(A2, b2, c2);
-    x2restart = simplexRestart(mat, A2, b2, c2);
-    equal(x2, x2restart);
+    p2 = simplexProblem(A2, b2, c2);
+    x2 = simplex2(p2);
+    
+    t1 = simplex2TableauSolved(p1);
+    x2res = simplex2Restart(t1, p2);
 ```
 

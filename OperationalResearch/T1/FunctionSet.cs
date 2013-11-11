@@ -38,62 +38,86 @@ namespace T1 {
             return true;
         }
 
-        public double[] simplex(double[][] A, double[] b, double[] c) {
-            SimplexProblem p = new SimplexProblem(true, A, b, c);
+        public SimplexProblem simplexProblem(double[][] A, double[] b,
+                double[] c) {
+            return new SimplexProblem(true, A, b, c);
+        }
 
-            CompactTableau ct = Simplex.CreateTableau(p, notify);
+        public SimplexProblem simplexDualProblem(double[][] A, double[] b,
+                double[] c) {
+            return new SimplexProblem(false, A, b, c);
+        }
+
+        public SimplexProblem maxFlowProblem(double[][] g, int s, int t) {
+            return Simplex.CreateFromMaxFlow(g, s, t);
+        }
+
+        public CompactTableau simplexTableau(SimplexProblem p) {
+            return Simplex.CreateTableau(p, notify);
+        }
+
+        public CompactTableau simplexDualTableau(SimplexProblem p) {
+            return Simplex.CreateDualTableau(p, notify);
+        }
+
+        public BigTableau simplex2Tableau(SimplexProblem p) {
+            return Simplex.CreateBigTableau(p, notify);
+        }
+
+        public double[] simplex(double[][] A, double[] b, double[] c) {
+            return simplex(simplexProblem(A, b, c));
+        }
+
+        public double[] simplex(SimplexProblem p) {
+            return simplex(simplexTableau(p));
+        }
+
+        public double[] simplex(CompactTableau ct) {
             Simplex.SolveFeasible(ct, notify);
             return ct.MakeSolution();
         }
 
-        public double[] simplex2(double[][] A, double[] b, double[] c) {
-            SimplexProblem p = new SimplexProblem(true, A, b, c);
-
-            BigTableau bt = Simplex.CreateBigTableau(p, notify);
-            Simplex.SolveBig(bt, notify);
-            return bt.MakeSolution();
-        }
-
-        public double[][] simplexMat(double[][] A, double[] b, double[] c) {
-            SimplexProblem p = new SimplexProblem(true, A, b, c);
-
-            BigTableau bt = Simplex.CreateBigTableau(p, notify);
-            Simplex.SolveBig(bt, notify);
-            return bt.t;
-        }
-
-        public double[] simplexRestart(double[][] mat, double[][] A,
-                double[] b, double[] c) {
-            BigTableau bt = Simplex.CreateBigRestartedTableau(mat, A, b, c);
-            
-            Simplex.FixBigRestartedTableau(bt, notify);
-            return bt.MakeSolution();
-        }
-
         public double[] simplexDual(double[][] A, double[] b, double[] c) {
-            SimplexProblem p = new SimplexProblem(false, A, b, c);
+            return simplexDual(simplexDualProblem(A, b, c));
+        }
 
-            CompactTableau ct = Simplex.CreateDualTableau(p, notify);
+        public double[] simplexDual(SimplexProblem p) {
+            return simplexDual(simplexDualTableau(p));
+        }
+
+        public double[] simplexDual(CompactTableau ct) {
             Simplex.SolveDual(ct, notify);
             return ct.MakeDualSolution();
         }
 
-        public double[] simplexMaxFlow(double[][] g, int s, int t) {
-            SimplexProblem p = Simplex.CreateFromMaxFlow(g, s, t);
-
-            CompactTableau ct = Simplex.CreateTableau(p, notify);
-            Simplex.SolveFeasible(ct, notify);
-            return ct.MakeSolution();
+        public double[] simplex2(double[][] A, double[] b, double[] c) {
+            return simplex2(simplexProblem(A, b, c));
         }
 
-        // TODO: Remove this. Create a max flow function which returns just
-        // a SimplexProblem.
-        public double[] simplex2MaxFlow(double[][] g, int s, int t) {
-            SimplexProblem p = Simplex.CreateFromMaxFlow(g, s, t);
+        public double[] simplex2(SimplexProblem p) {
+            return simplex2(simplex2Tableau(p));
+        }
 
-            BigTableau bt = Simplex.CreateBigTableau(p, notify);
+        public double[] simplex2(BigTableau bt) {
             Simplex.SolveBig(bt, notify);
             return bt.MakeSolution();
+        }
+
+        public BigTableau simplex2TableauSolved(SimplexProblem p) {
+            BigTableau bt = simplex2Tableau(p);
+            Simplex.SolveBig(bt, notify);
+            return bt;
+        }
+
+        public double[] simplex2Restart(BigTableau old, SimplexProblem p) {
+            BigTableau bt2 = Simplex.CreateBigRestartedTableau(old, p);
+
+            if (notify != null) {
+                notify("Before pivoting:", bt2);
+            }
+
+            Simplex.FixBigRestartedTableau(bt2, notify);
+            return bt2.MakeSolution();
         }
     }
 }
