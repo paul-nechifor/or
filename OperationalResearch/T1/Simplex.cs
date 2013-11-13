@@ -677,6 +677,12 @@ namespace T1 {
                 ind[i] = nVars + i;
             }
 
+            BigTableau bt = new BigTableau(m, n, t, ind);
+
+            if (notify != null) {
+                notify("Artificial tableau before new objectives:", bt);
+            }
+
             // Solving the new objective function.
             for (int j = 0; j <= n; j++) {
                 t[m][j] = 0;
@@ -688,10 +694,8 @@ namespace T1 {
                 t[m][n] -= t[p.art[i] - nVars][n];
             }
 
-            BigTableau bt = new BigTableau(m, n, t, ind);
-
             if (notify != null) {
-                notify("Created tableau:", bt);
+                notify("Artificial tableau after new objectives:", bt);
             }
 
             return bt;
@@ -1109,6 +1113,11 @@ namespace T1 {
                 }
             }
 
+            foreach (var item in c) {
+                Console.Write(item.ToString() + " ");
+            }
+            Console.WriteLine();
+
             int[] art = new int[nArtificial];
             k = 0;
             for (int i = 0; i < m; i++) {
@@ -1250,6 +1259,42 @@ namespace T1 {
             }
 
             return ret;
+        }
+
+        public static BigTableau F22c(double[][] A, double[] b, double[] c,
+                int[] ik, double[] beta, Action<string, object> notify) {
+            int m = A.Length;
+            int n = A[0].Length;
+            int k = ik.Length;
+            int m2 = m + k;
+            int n2 = n + m + k;
+
+            double[] b2 = new double[m2];
+            Array.Copy(b, b2, m);
+            double[] c2 = new double[n2];
+            Array.Copy(c, c2, n);
+
+            double[][] A2 = new double[m2][];
+            for (int i = 0; i < m2; i++) {
+                A2[i] = new double[n2];
+            }
+
+            for (int i = 0; i < m; i++) {
+                Array.Copy(A[i], A2[i], n);
+                A2[i][n + i] = 1;
+            }
+
+            for (int i = 0; i < k; i++) {
+                A2[m + i][ik[i]] = 1;
+                A2[m + i][n + m + i] = -1;
+                b2[m + i] = beta[i];
+            }
+
+            EqSimplexProblem p = new EqSimplexProblem(true, A2, b2, c2);
+            if (notify != null) {
+                notify("Without artificial variables:", p);
+            }
+            return SolveArtificial(p, notify);
         }
     }
 }

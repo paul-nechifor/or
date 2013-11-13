@@ -21,7 +21,8 @@ Operational Research Homework
 - [T2B-b](#t2b-b)
 - [T2B-c-test](#t2b-c-test)
 - [T2B-c](#t2b-c)
-- [T2C-test](#t2c-test)
+- [T2C-test1](#t2c-test1)
+- [T2C-test2](#t2c-test2)
 
 ### T1C-e
 
@@ -211,11 +212,21 @@ Operational Research Homework
     alteredLimits = f21c(t1, c1, c2);
 ```
 
-### T2C-test
+### T2C-test1
 
 ```
     A = [[2, 1, 0, 0], [4, 3, -1, 0], [1, 2, 0, 1]];
     b = [3, 6, 4];
     c = [4, 1, 0, 0];
     x = simplex3(A, b, c);
+```
+
+### T2C-test2
+
+```
+    A = [[1, 2, 1], [3, 0, 2], [1, 4, 0]];
+    b = [230, 260, 220];
+    c = [3, 2, 5];
+    x = simplex2(A, b, c);
+    x = f22c(A, b, c, [2, 1], [50, 130]);
 ```

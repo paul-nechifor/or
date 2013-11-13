@@ -149,5 +149,15 @@ namespace T1 {
         public double[][] f21c(BigTableau bt, double[] c, double[] cBar) {
             return Simplex.F21c(bt, c, cBar);
         }
+
+        public double[] f22c(double[][] A, double[] b, double[] c, double[] ik,
+                double[] beta) {
+            int[] ikInt = new int[ik.Length];
+            for (int i = 0; i < ik.Length; i++) {
+                ikInt[i] = (int)ik[i];
+            }
+            BigTableau bt = Simplex.F22c(A, b, c, ikInt, beta, notify);
+            return bt.MakeSolutionAll();
+        }
     }
 }
