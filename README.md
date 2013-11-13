@@ -17,6 +17,10 @@ Operational Research Homework
 - [T1E-2](#t1e-2)
 - [T2A](#t2a)
 - [T2B-a](#t2b-a)
+- [T2B-b-test](#t2b-b-test)
+- [T2B-b](#t2b-b)
+- [T2B-c-test](#t2b-c-test)
+- [T2B-c](#t2b-c)
 
 ### T1C-e
 
@@ -128,7 +132,7 @@ Operational Research Homework
 ### T1E-2
 
 ```
-    A = [[-1, -1, -1, -1], [-1, 11, 5, -18], [-1, 3, 1, -2]];
+    A = [[-1, -1, -1, -1] , [-1, 11, 5, -18], [-1, 3, 1, -2]];
     b = [-1, 0, 0];
     c = [1, -7, -1, -2];
     y = simplexDual(A, b, c);
@@ -143,7 +147,7 @@ Operational Research Homework
 
 ```
     A1 = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
-    b1 = [6, 8, 6];
+    b1 = [6, 8, 6]; 
     c1 = [2, 1, 3];
     p1 = simplexProblem(A1, b1, c1);
     x1 = simplex2(p1);
@@ -156,5 +160,52 @@ Operational Research Homework
     
     t1 = simplex2TableauSolved(p1);
     x2res = simplex2Restart(t1, p2);
+    
+    f21b(t1, b1, b2);
 ```
 
+### T2B-b-test
+
+```
+    A = [[1, 2, 1], [3, 0, 2], [1, 4, 0]];
+    b = [430, 460, 420];
+    c = [3, 2, 5];
+    t = simplex2TableauSolved(simplexProblem(A, b, c));
+    f21b(t, b, b);
+    f21b(t, b, [1, 1, 1]);
+```
+
+### T2B-b
+
+```
+    A1 = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
+    b1 = [6, 8, 6]; 
+    c1 = [2, 1, 3];
+    t1 = simplex2TableauSolved(simplexProblem(A1, b1, c1));
+    b2 = [5, 9, 6.5];
+    initialLimits = f21b(t1, b1, b1);
+    alteredLimits = f21b(t1, b1, b2);
+```
+
+### T2B-c-test
+
+```
+    A = [[1, 2, 1], [3, 0, 2], [1, 4, 0]];
+    b = [430, 460, 420];
+    c = [3, 2, 5];
+    t = simplex2TableauSolved(simplexProblem(A, b, c));
+    f21c(t, c, c);
+    f21c(t, c, [999, -999, 999]);
+```
+
+### T2B-c
+
+```
+    A1 = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
+    b1 = [6, 8, 6]; 
+    c1 = [2, 1, 3];
+    t1 = simplex2TableauSolved(simplexProblem(A1, b1, c1));
+    c2 = [2.5, 1, 2.5];
+    initialLimits = f21c(t1, c1, c1);
+    alteredLimits = f21c(t1, c1, c2);
+```

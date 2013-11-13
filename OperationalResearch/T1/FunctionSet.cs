@@ -119,5 +119,13 @@ namespace T1 {
             Simplex.FixBigRestartedTableau(bt2, notify);
             return bt2.MakeSolution();
         }
+
+        public double[][] f21b(BigTableau bt, double[] b, double[] bBar) {
+            return Simplex.F21b(bt, b, bBar);
+        }
+
+        public double[][] f21c(BigTableau bt, double[] c, double[] cBar) {
+            return Simplex.F21c(bt, c, cBar);
+        }
     }
 }

@@ -40,6 +40,23 @@ namespace T1 {
         }
     }
 
+    public class VarSimplexProblem {
+        public bool max;
+        public double[][] A;
+        public double[] b;
+        public double[] c;
+        public int[] cmp;
+
+        public VarSimplexProblem(bool max, double[][] A, double[] b,
+                double[] c, int[] cmp) {
+            this.max = max;
+            this.A = A;
+            this.b = b;
+            this.c = c;
+            this.cmp = cmp;
+        }
+    }
+
     public class CompactTableau {
         public int m;
         public int n;
@@ -107,6 +124,23 @@ namespace T1 {
             }
 
             return ret;
+        }
+    }
+
+    public class TfTableau {
+        public int m;
+        public int n;
+        public double[][] t;
+        public int[] ind;
+        public int[] artificials;
+
+        public TfTableau(int m, int n, double[][] t, int[] ind,
+                int[] artificials) {
+            this.m = m;
+            this.n = n;
+            this.t = t;
+            this.ind = ind;
+            this.artificials = artificials;
         }
     }
 
@@ -418,8 +452,6 @@ namespace T1 {
 
             return ct;
         }
-
-
 
         public static void SolveDual(CompactTableau ct) {
             SolveDual(ct, null);
@@ -819,83 +851,159 @@ namespace T1 {
             return true;
         }
 
-        /*
-        public static void FixBigRestartedTableau(BigTableau bt,
-                Action<string, object> notify) {
-            if (notify != null) {
-                notify("Initial is:", bt);
-            }
-
+        public static double[][] F21b(BigTableau bt, double[] b,
+                double[] bBar) {
             int m = bt.m;
             int n = bt.n;
+            int nVar = n - m;
+            double[][] t = bt.t;
 
-            for (int i = 0; i < m; i++) {
-                int index = GetRowLabel(bt.t, m, n, i);
-                if (index != -1) {
-                    bt.ind[i] = index;
+            double[][] limits = new double[m][];
+
+            double rhsj;
+            for (int j = 0; j < m; j++) {
+                // For this b_j compute the RHS[j].
+                rhsj = 0.0;
+                for (int k = 0; k < m; k++) {
+                    // Skip the fixed j.
+                    if (j != k) {
+                        rhsj += t[j][nVar + k] * b[k];
+                    }
                 }
+                // Add in the modified value.
+                rhsj += t[j][nVar + j] * bBar[j];
+
+                limits[j] = new double[3];
+                ComputeBInterval(t, j, m, n, nVar, rhsj, b, limits);
             }
 
-            if (notify != null) {
-                notify("After labeling:", bt);
-            }
-
-            for (int i = 0; i < m; i++) {
-                Pivot(bt, i, i);
-            }
-
-            if (notify != null) {
-                notify("After second labeling:", bt);
-            }
-
-            for (var i = 0; i < m; i++) {
-                if (bt.t[i][n] <= 0) {
-                    throw new InfeasibleProblemException();
-                }
-            }
-
-            bool done = true;
-            for (var j = 0; j < n; j++) {
-                if (bt.t[m][j] < 0) {
-                    done = false;
-                    break;
-                }
-            }
-
-            if (done) {
-                return;
-            }
-
-            SolveBig(bt, notify);
-
-            if (notify != null) {
-                notify("After solving:", bt);
-            }
+            return limits;
         }
 
-        // Wow, such elegance in code! /s
-        public static int GetRowLabel(double[][] t, int m, int n, int i) {
-            for (int j = 0; j < n; j++) {
-                if (Math.Abs(t[i][j] - 1.0) > double.Epsilon ||
-                        Math.Abs(t[m][j]) > double.Epsilon) {
+        private static void ComputeBInterval(double[][] t, int j, int m, int n,
+                int nVar, double rhsj, double[] b, double[][] limits) {
+            double min = double.NegativeInfinity;
+            double max = double.PositiveInfinity;
+
+            // For every value of the column d_j see if it is limiting.
+            for (int k = 0; k < m; k++) {
+                double coef = t[k][nVar + j];
+                // Zero coeficients do not limit.
+                if (Math.Abs(coef) <= double.Epsilon) {
                     continue;
                 }
 
-                int k;
-                for (k = 0; k < m; k++) {
-                    if (k != i && Math.Abs(t[k][j]) > double.Epsilon) {
-                        break;
+                double rhs = (k == j) ? rhsj : t[k][n];
+                double newLimit = -(rhs / coef);
+
+                // Positive coeficients limit the minimum.
+                if (coef > 0) {
+                    if (newLimit > min) {
+                        min = newLimit;
+                    }
+                // Negative coeficients limit the maximum.
+                } else {
+                    if (newLimit < max) {
+                        max = newLimit;
                     }
                 }
-
-                if (k == m) {
-                    return j;
-                }
-
-                continue;
             }
 
-            return -1;
-        }*/
+            limits[j][0] = b[j] + min;
+            limits[j][1] = b[j];
+            limits[j][2] = b[j] + max;
+        }
+
+        public static double[][] F21c(BigTableau bt, double[] c,
+                double[] cBar) {
+            int m = bt.m;
+            int n = bt.n;
+            int nVar = n - m;
+            double[][] t = bt.t;
+
+            int[] nonBase = GetNonBaseIndices(bt.ind, m, n, nVar);
+
+            double[][] limits = new double[m][];
+
+            for (int i = 0; i < m; i++) {
+                limits[i] = new double[3];
+                limits[i][0] = double.NegativeInfinity;
+                limits[i][1] = c[i];
+                limits[i][2] = double.PositiveInfinity;
+            }
+
+            for (int lineIndex = 0; lineIndex < m; lineIndex++) {
+                int i = bt.ind[lineIndex];
+
+                // Skip the ones which aren't original variables.
+                if (i >= m) {
+                    continue;
+                }
+
+                double zi = t[m][i] - c[i] + cBar[i];
+
+                ComputeCInterval(i, nVar, lineIndex, m, c, zi, t, limits,
+                        nonBase);
+            }
+
+            return limits;
+        }
+
+        private static void ComputeCInterval(int i, int nVar, int lineIndex,
+                int m, double[] c, double zi, double[][] t, double[][] limits,
+                int[] nonBase) {
+            double min = double.NegativeInfinity;
+            double max = double.PositiveInfinity;
+
+            // For every column that isn't in the base.
+            for (int k = 0; k < nVar; k++) {
+                int outIndex = nonBase[k];
+
+                double coef = t[lineIndex][outIndex];
+
+                // Zero coeficients do not limit.
+                if (Math.Abs(coef) <= double.Epsilon) {
+                    continue;
+                }
+
+                double z = (outIndex == i) ? zi : t[m][outIndex];
+                double newLimit = (-z) / coef;
+
+                // Positive coeficients limit the minimum.
+                if (coef > 0) {
+                    if (newLimit > min) {
+                        min = newLimit;
+                    }
+                // Negative coeficients limit the maximum.
+                } else {
+                    if (newLimit < max) {
+                        max = newLimit;
+                    }
+                }
+            }
+
+            limits[i][0] = c[i] + min;
+            limits[i][1] = c[i];
+            limits[i][2] = c[i] + max;
+        }
+
+        private static int[] GetNonBaseIndices(int[] ind, int m, int n,
+                int nVar) {
+            bool[] inBase = new bool[n];
+            for (int i = 0; i < m; i++) {
+                inBase[ind[i]] = true;
+            }
+
+            int[] nonBase = new int[nVar];
+            int k = 0;
+            for (int i = 0; i < n; i++) {
+                if (!inBase[i]) {
+                    nonBase[k] = i;
+                    k++;
+                }
+            }
+
+            return nonBase;
+        }
     }
 }
