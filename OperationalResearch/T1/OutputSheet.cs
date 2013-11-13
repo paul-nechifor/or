@@ -52,6 +52,10 @@ namespace T1 {
                 return Print((CompactTableau)value);
             } else if (value is SimplexProblem) {
                 return Print((SimplexProblem)value);
+            } else if (value is ArtEqSimplexProblem) {
+                return Print((ArtEqSimplexProblem)value);
+            } else if (value is EqSimplexProblem) {
+                return Print((EqSimplexProblem)value);
             } else if (value is BigTableau) {
                 return Print((BigTableau)value);
             } else if (value == null) {
@@ -249,6 +253,51 @@ namespace T1 {
                     AddX(sb, name, p.A[i][j], j, ref first);
                 }
                 sb.AppendFormat("</td><td>{0}</td><td>{1:0.###}</td></tr>",
+                        comp, p.b[i]);
+            }
+
+            sb.Append("<tr><td class='first'>");
+            for (int j = 0; j < n; j++) {
+                if (j > 0) {
+                    sb.Append(",");
+                }
+                sb.AppendFormat("{0}<sub>{1}</sub>", name, j + 1);
+            }
+            sb.Append("</td><td>≥</td><td>0</td></tr>");
+
+            sb.Append("</table>");
+
+            return sb.ToString();
+        }
+
+        // TODO: All these printing things need to be simplified. And these
+        // functions especially need to be removed because of all the
+        // duplication.
+        private string Print(EqSimplexProblem p) {
+            int m = p.A.Length;
+            int n = p.A[0].Length;
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("<table class='simplex-problem'>");
+
+            sb.AppendFormat("<tr><td class='first'>{0} ",
+                    p.max ? "max" : "min");
+            string comp = "=";
+            string name = p.max ? "x" : "y";
+            bool first = true;
+            for (int j = 0; j < n; j++) {
+                AddX(sb, name, p.c[j], j, ref first);
+            }
+            sb.Append("</td></tr>");
+
+            for (int i = 0; i < m; i++) {
+                sb.Append("<tr><td class='first'>");
+                first = true;
+                for (int j = 0; j < n; j++) {
+                    AddX(sb, name, p.A[i][j], j, ref first);
+                }
+                sb.AppendFormat("</td><td>=</td><td>{1:0.###}</td></tr>",
                         comp, p.b[i]);
             }
 

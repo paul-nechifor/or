@@ -52,6 +52,15 @@ namespace T1 {
             return Simplex.CreateFromMaxFlow(g, s, t);
         }
 
+        public EqSimplexProblem simplexEq(double[][] A, double[] b,
+                double[] c) {
+            return new EqSimplexProblem(true, A, b, c);
+        }
+
+        public ArtEqSimplexProblem simplexArtEq(EqSimplexProblem p) {
+            return Simplex.CreateWithArtificialVariables(p);
+        }
+
         public CompactTableau simplexTableau(SimplexProblem p) {
             return Simplex.CreateTableau(p, notify);
         }
@@ -61,6 +70,10 @@ namespace T1 {
         }
 
         public BigTableau simplex2Tableau(SimplexProblem p) {
+            return Simplex.CreateBigTableau(p, notify);
+        }
+
+        public BigTableau simplexEqArtTableau(ArtEqSimplexProblem p) {
             return Simplex.CreateBigTableau(p, notify);
         }
 
@@ -101,6 +114,15 @@ namespace T1 {
         public double[] simplex2(BigTableau bt) {
             Simplex.SolveBig(bt, notify);
             return bt.MakeSolution();
+        }
+
+        public double[] simplex3(double[][] A, double[] b, double[] c) {
+            return simplex3(simplexEq(A, b, c));
+        }
+
+        public double[] simplex3(EqSimplexProblem p) {
+            BigTableau bt = Simplex.SolveArtificial(p, notify);
+            return bt.MakeSolutionAll();
         }
 
         public BigTableau simplex2TableauSolved(SimplexProblem p) {

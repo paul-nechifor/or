@@ -21,6 +21,7 @@ Operational Research Homework
 - [T2B-b](#t2b-b)
 - [T2B-c-test](#t2b-c-test)
 - [T2B-c](#t2b-c)
+- [T2C-test](#t2c-test)
 
 ### T1C-e
 
@@ -132,7 +133,7 @@ Operational Research Homework
 ### T1E-2
 
 ```
-    A = [[-1, -1, -1, -1] , [-1, 11, 5, -18], [-1, 3, 1, -2]];
+    A = [[-1, -1, -1, -1], [-1, 11, 5, -18], [-1, 3, 1, -2]];
     b = [-1, 0, 0];
     c = [1, -7, -1, -2];
     y = simplexDual(A, b, c);
@@ -147,7 +148,7 @@ Operational Research Homework
 
 ```
     A1 = [[1, 1, 2], [2, 2, 1], [2, 3, 0]];
-    b1 = [6, 8, 6]; 
+    b1 = [6, 8, 6];
     c1 = [2, 1, 3];
     p1 = simplexProblem(A1, b1, c1);
     x1 = simplex2(p1);
@@ -208,4 +209,13 @@ Operational Research Homework
     c2 = [2.5, 1, 2.5];
     initialLimits = f21c(t1, c1, c1);
     alteredLimits = f21c(t1, c1, c2);
+```
+
+### T2C-test
+
+```
+    A = [[2, 1, 0, 0], [4, 3, -1, 0], [1, 2, 0, 1]];
+    b = [3, 6, 4];
+    c = [4, 1, 0, 0];
+    x = simplex3(A, b, c);
 ```

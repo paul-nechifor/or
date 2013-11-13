@@ -40,20 +40,40 @@ namespace T1 {
         }
     }
 
-    public class VarSimplexProblem {
+    /// <summary>
+    /// Simplex problems where all the constraints are equations.
+    /// </summary>
+    // TODO: This should be inherit from SimplexProblem.
+    public class EqSimplexProblem {
         public bool max;
         public double[][] A;
         public double[] b;
         public double[] c;
-        public int[] cmp;
 
-        public VarSimplexProblem(bool max, double[][] A, double[] b,
-                double[] c, int[] cmp) {
+        public EqSimplexProblem(bool max, double[][] A, double[] b,
+                double[] c) {
             this.max = max;
             this.A = A;
             this.b = b;
             this.c = c;
-            this.cmp = cmp;
+        }
+    }
+
+    /// <summary>
+    /// Simplex problems that have artificial variables.
+    /// </summary>
+    public class ArtEqSimplexProblem : EqSimplexProblem {
+        public int[] art;
+        /// <summary>
+        /// For the last m columns, this indicates the original index that
+        /// variable had or -1 if it is a newly introduced artificial variable.
+        /// </summary>
+        public int[] baseVar;
+
+        public ArtEqSimplexProblem(bool max, double[][] A, double[] b,
+                double[] c, int[] art, int[] baseVar) : base(max, A, b, c) {
+            this.art = art;
+            this.baseVar = baseVar;
         }
     }
 
@@ -125,22 +145,15 @@ namespace T1 {
 
             return ret;
         }
-    }
 
-    public class TfTableau {
-        public int m;
-        public int n;
-        public double[][] t;
-        public int[] ind;
-        public int[] artificials;
+        public double[] MakeSolutionAll() {
+            double[] ret = new double[n];
 
-        public TfTableau(int m, int n, double[][] t, int[] ind,
-                int[] artificials) {
-            this.m = m;
-            this.n = n;
-            this.t = t;
-            this.ind = ind;
-            this.artificials = artificials;
+            for (int i = 0; i < m; i++) {
+                ret[ind[i]] = t[i][n];
+            }
+
+            return ret;
         }
     }
 
@@ -623,9 +636,56 @@ namespace T1 {
             }
 
             int[] ind = new int[m];
-
             for (int i = 0; i < ind.Length; i++) {
                 ind[i] = nVars + i;
+            }
+
+            BigTableau bt = new BigTableau(m, n, t, ind);
+
+            if (notify != null) {
+                notify("Created tableau:", bt);
+            }
+
+            return bt;
+        }
+
+        public static BigTableau CreateBigTableau(ArtEqSimplexProblem p,
+                Action<string, object> notify) {
+            if (notify != null) {
+                notify("Problem:", p);
+            }
+
+            int m = p.A.Length;
+            int n = p.c.Length;
+            int nVars = n - m;
+
+            double[][] t = new double[m + 1][];
+
+            for (int i = 0; i < m; i++) {
+                t[i] = new double[n + 1];
+
+                Array.Copy(p.A[i], t[i], n);
+                t[i][n] = p.b[i];
+            }
+            t[m] = new double[n + 1];
+            for (int i = 0; i < n; i++) {
+                t[m][i] = -p.c[i];
+            }
+
+            int[] ind = new int[m];
+            for (int i = 0; i < ind.Length; i++) {
+                ind[i] = nVars + i;
+            }
+
+            // Solving the new objective function.
+            for (int j = 0; j <= n; j++) {
+                t[m][j] = 0;
+            }
+            for (int i = 0; i < p.art.Length; i++) {
+                for (int j = 0; j < m; j++) {
+                    t[m][j] -= t[p.art[i] - nVars][j];
+                }
+                t[m][n] -= t[p.art[i] - nVars][n];
             }
 
             BigTableau bt = new BigTableau(m, n, t, ind);
@@ -1004,6 +1064,192 @@ namespace T1 {
             }
 
             return nonBase;
+        }
+
+        public static ArtEqSimplexProblem CreateWithArtificialVariables(
+                EqSimplexProblem p) {
+            int m = p.A.Length;
+            int[] baseVar = new int[m]; // -1 == needs an artificial one.
+            int nArtificial = 0;
+
+            // Find the base variable for each constraint.
+            for (int i = 0; i < m; i++) {
+                baseVar[i] = CalcBaseVar(p.A, p.c, i);
+                if (baseVar[i] == -1) {
+                    nArtificial++;
+                }
+            }
+
+            bool[] nonBase = CalcNonBase(baseVar, m, p.c.Length);
+
+            int n = p.c.Length + nArtificial;
+            int nVar = n - m;
+
+            double[][] A = new double[m][];
+            for (int i = 0; i < m; i++) {
+                A[i] = new double[n];
+            }
+
+            int k = 0;
+            for (int j = 0; j < p.c.Length; j++) {
+                if (nonBase[j]) {
+                    for (int i = 0; i < m; i++) {
+                        A[i][k] = p.A[i][j];
+                    }
+                    k++;
+                }
+            }
+
+            double[] c = new double[n];
+            for (int i = 0; i < m; i++) {
+                A[i][nVar + i] = 1;
+
+                if (baseVar[i] == -1) {
+                    c[nVar + i] = -1;
+                }
+            }
+
+            int[] art = new int[nArtificial];
+            k = 0;
+            for (int i = 0; i < m; i++) {
+                if (baseVar[i] == -1) {
+                    art[k] = nVar + i;
+                    k++;
+                }
+            }
+
+            return new ArtEqSimplexProblem(p.max, A, p.b, c, art, baseVar);
+        }
+
+        private static int CalcBaseVar(double[][] A, double[] c, int i) {
+            int m = A.Length;
+            int n = c.Length;
+            int nVar = n - m;
+
+            // For every column, check if it can be from an identity matrix.
+            for (int j = 0; j < n; j++) {
+                // Skip because c_j isn't 0.
+                if (Math.Abs(c[j]) > double.Epsilon) {
+                    continue;
+                }
+
+                bool isIdentityColumn = true;
+                for (int k = 0; k < m; k++) {
+                    if (Math.Abs(A[k][j] - (i==k ? 1 : 0)) > double.Epsilon) {
+                        isIdentityColumn = false;
+                        break;
+                    }
+                }
+                if (isIdentityColumn) {
+                    return j;
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool[] CalcNonBase(int[] baseVar, int m, int n) {
+            bool[] nonBase = new bool[n];
+            for (int i = 0; i < n; i++) {
+                nonBase[i] = true;
+            }
+
+            for (int i = 0; i < m; i++) {
+                if (baseVar[i] >= 0) {
+                     nonBase[baseVar[i]] = false;
+                }
+            }
+
+            return nonBase;
+        }
+
+        public static BigTableau SolveArtificial(EqSimplexProblem p,
+                Action<string, object> notify) {
+            ArtEqSimplexProblem p2 = CreateWithArtificialVariables(p);
+            BigTableau bt = CreateBigTableau(p2, notify);
+            SolveBig(bt);
+
+            if (notify != null) {
+                notify("Final tableau:", bt);
+            }
+
+            if (Math.Abs(bt.t[bt.m][bt.n]) > 0) {
+                throw new InfeasibleProblemException();
+            }
+
+            BigTableau bt2 = EliminateArtificials(bt, p2, p);
+
+            if (notify != null) {
+                notify("After eliminating:", bt2);
+            }
+
+            SolveBig(bt2);
+
+            return bt2;
+        }
+
+        public static BigTableau EliminateArtificials(BigTableau bt,
+                ArtEqSimplexProblem p, EqSimplexProblem pOrig) {
+            int nVars = bt.n - bt.m;
+            int n2 = bt.n - p.art.Length;
+            double[][] t = new double[bt.m + 1][];
+            for (int i = 0; i <= bt.m; i++) {
+                t[i] = new double[n2 + 1];
+            }
+
+            int k = 0;
+            for (int j = 0; j < bt.n; j++) {
+                if (j >= nVars && p.baseVar[j - nVars] == -1) {
+                    continue;
+                }
+                for (int i = 0; i < bt.m; i++) {
+                    t[i][k] = bt.t[i][j];
+                }
+
+                k++;
+            }
+
+            // Copy RHS.
+            for (int i = 0; i < bt.m; i++) {
+                t[i][n2] = bt.t[i][bt.n];
+            }
+
+            // Restoring the indices.
+            int[] ind = (int[])bt.ind.Clone();
+            for (int i = 0; i < ind.Length; i++) {
+                if (ind[i] >= nVars) {
+                    ind[i] = p.baseVar[ind[i] - nVars];
+                }
+            }
+
+            bool[] nonBase = NonBase2(ind, n2);
+
+            // Solving the new objective function.
+            for (int j = 0; j <= n2; j++) {
+                if (!nonBase[j]) {
+                    continue;
+                }
+
+                for (int i = 0; i < bt.m; i++) {
+                    Console.WriteLine(j + " " + i + " ::: " + ind[i] + " " + t[i][j] + " " + pOrig.c[ind[i]]);
+                    t[bt.m][j] += t[i][j] * pOrig.c[ind[i]];
+                }
+            }
+
+            return new BigTableau(bt.m, n2, t, ind);
+        }
+
+        private static bool[] NonBase2(int[] ind, int n) {
+            bool[] ret = new bool[n + 1];
+            for (int i = 0; i <= n; i++) {
+                ret[i] = true;
+            }
+
+            for (int i = 0; i < ind.Length; i++) {
+                ret[ind[i]] = false;
+            }
+
+            return ret;
         }
     }
 }
