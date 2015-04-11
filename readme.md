@@ -143,7 +143,21 @@ Operational Research Homework
 
 ### T2A
 
-...
+```
+    A = [[0.5, -5.5, -2.5, 9], [0.5, -1.5, -0.5, 1], [1, 0, 0, 0]];
+    b = [0, 0, 1];
+    c = [10, -57, -9, -24];
+    x = simplex2(A, b, c);
+    equal(x, [1, 0, 1, 0]);
+```
+
+```
+    A = [[0.2, 0.3], [0.4, 0.3]];
+    b = [14, 16];
+    c = [20, 25];
+    x = simplex2(A, b, c);
+    equal(x, [10, 40]);
+```
 
 ### T2B-a
 
@@ -173,8 +187,8 @@ Operational Research Homework
     b = [430, 460, 420];
     c = [3, 2, 5];
     t = simplex2TableauSolved(simplexProblem(A, b, c));
-    f21b(t, b, b);
-    f21b(t, b, [1, 1, 1]);
+    withSelf = f21b(t, b, b);
+    example = f21b(t, b, [1, 1, 1]);
 ```
 
 ### T2B-b
