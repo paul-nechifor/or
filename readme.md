@@ -1,3 +1,7 @@
+# This repository has been moved to [gitlab.com/paul-nechifor/or-homework](http://gitlab.com/paul-nechifor/or-homework).
+
+Old readme:
+
 Operational Research Homework
 =============================
 
